@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Adds the native behavioral raw form/action provenance wire contract.
+- Expands Android runtime, app integrity, and anti-tamper signal coverage.
+- Keeps public install coordinates unchanged:
+  `com.tripwirejs:tripwire-android` and
+  `com.tripwirejs:tripwire-android-gms`.
+
 ## 1.0.0
 
 Initial public Android SDK package release.
