@@ -15,6 +15,18 @@ and internal build artifacts are retained privately.
 | `com.tripwirejs:tripwire-android` | Yes | Core Tripwire Android SDK. |
 | `com.tripwirejs:tripwire-android-gms` | No | Optional Google ecosystem helpers for apps that already ship Google Play Services. |
 
+## What's New in 1.2.0
+
+- Expanded native signal coverage for device, app, runtime, network, and
+  integrity posture.
+- Improved native behavioral collection for form, action, lifecycle, motion,
+  scroll, WebView, and touch evidence while keeping raw user-entered values out
+  of the payload.
+- Better parity with the iOS and web SDKs so native and hybrid sessions can be
+  interpreted consistently by Tripwire's server-side scoring pipeline.
+- Additional integration diagnostics and companion-app polish for local and
+  production validation.
+
 ## Requirements
 
 - Android 6.0 Marshmallow / API 23+
@@ -43,7 +55,7 @@ Add the SDK dependency:
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.tripwirejs:tripwire-android:1.0.0")
+    implementation("com.tripwirejs:tripwire-android:1.2.0")
 }
 ```
 
@@ -52,7 +64,7 @@ continuity helpers, add:
 
 ```kotlin
 dependencies {
-    implementation("com.tripwirejs:tripwire-android-gms:1.0.0")
+    implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
 }
 ```
 
@@ -115,6 +127,8 @@ val config = TripwireConfiguration(
     enableBehavioralSignals = true,
     enableHiddenWebView = true,
     enableCloudIdentifier = false,
+    enableAutoAttachTouches = false,
+    lockAgainstExternalDebuggers = false,
     apiEndpoint = "https://api.tripwirejs.com",
 )
 
@@ -127,6 +141,8 @@ TripwireClient.configure(context, config)
 | `enableBehavioralSignals` | `true` | Captures native lifecycle, navigation, viewport, scroll, form, clipboard, selection, motion, and touch behavior. |
 | `enableHiddenWebView` | `true` | Enables native-to-web handoff for Tripwire-protected `WebView` content. |
 | `enableCloudIdentifier` | `false` | Enables an optional cloud continuity hint when the optional GMS helper is present and available. |
+| `enableAutoAttachTouches` | `false` | Automatically attaches touch dynamics to resumed activities. Leave off if you attach touches manually. |
+| `lockAgainstExternalDebuggers` | `false` | Optional production hardening that can block debugger/profiler attachment while the app is running. Test carefully before enabling. |
 | `apiEndpoint` | Production API | Override only for development or private deployments. |
 
 Runtime integrity and anti-tamper collection is always enabled. It is part of
@@ -251,8 +267,11 @@ session evidence for server-side verification.
 | `TripwireClient.configure(context, configuration)` | Validates configuration and starts collection. |
 | `TripwireClient.getSession()` | Flushes a bounded batch and returns a server-verifiable handoff. |
 | `TripwireClient.waitForFingerprint()` | Waits for the durable fingerprint to be ready. Optional for most integrations. |
+| `TripwireClient.pauseCollection()` | Temporarily pauses active collection without destroying SDK state. |
+| `TripwireClient.resumeCollection()` | Resumes active collection after a pause. |
 | `TripwireClient.observeTouches(view, contextId)` | Manually attaches touch dynamics to a view. |
 | `TripwireClient.attach(webView)` | Connects a `WebView` to the native Tripwire session. |
+| `TripwireClient.resetLocalState()` | Clears local SDK session state for development and test flows. |
 | `TripwireClient.destroy()` | Stops collection and releases resources. Mostly useful in tests. |
 
 ## Error Handling
@@ -286,7 +305,7 @@ The public repository contains package metadata and documentation only. It is
 not a source mirror.
 
 The public Maven artifacts include protected binary AARs plus placeholder
-sources and javadocs jars for Maven Central compliance. Private R8 mappings,
+sources and javadocs jars for Maven Central compliance. Private mappings,
 native symbols, and debug artifacts are retained by Tripwire.
 
 ## Versioning
@@ -294,8 +313,8 @@ native symbols, and debug artifacts are retained by Tripwire.
 Tripwire follows semantic versioning for public mobile SDK packages.
 
 ```kotlin
-implementation("com.tripwirejs:tripwire-android:1.0.0")
-implementation("com.tripwirejs:tripwire-android-gms:1.0.0")
+implementation("com.tripwirejs:tripwire-android:1.2.0")
+implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
 ```
 
 Pin exact versions in production builds and upgrade intentionally.
