@@ -15,6 +15,18 @@ and internal build artifacts are retained privately.
 | `com.tripwirejs:tripwire-android` | Yes | Core Tripwire Android SDK. |
 | `com.tripwirejs:tripwire-android-gms` | No | Optional Google ecosystem helpers for apps that already ship Google Play Services. |
 
+## What's New in 1.2.1
+
+- Expanded native signal coverage for device, app, runtime, network, and
+  integrity posture.
+- Improved native behavioral collection for form, action, lifecycle, motion,
+  scroll, WebView, and touch evidence while keeping raw user-entered values out
+  of the payload.
+- Better parity with the iOS and web SDKs so native and hybrid sessions can be
+  interpreted consistently by Tripwire's server-side scoring pipeline.
+- Additional integration diagnostics and companion-app polish for local and
+  production validation.
+
 ## Requirements
 
 - Android 6.0 Marshmallow / API 23+
@@ -43,7 +55,7 @@ Add the SDK dependency:
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.tripwirejs:tripwire-android:1.2.0")
+    implementation("com.tripwirejs:tripwire-android:1.2.1")
 }
 ```
 
@@ -52,7 +64,7 @@ continuity helpers, add:
 
 ```kotlin
 dependencies {
-    implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
+    implementation("com.tripwirejs:tripwire-android-gms:1.2.1")
 }
 ```
 
@@ -301,8 +313,8 @@ native symbols, and debug artifacts are retained by Tripwire.
 Tripwire follows semantic versioning for public mobile SDK packages.
 
 ```kotlin
-implementation("com.tripwirejs:tripwire-android:1.2.0")
-implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
+implementation("com.tripwirejs:tripwire-android:1.2.1")
+implementation("com.tripwirejs:tripwire-android-gms:1.2.1")
 ```
 
 Pin exact versions in production builds and upgrade intentionally.
