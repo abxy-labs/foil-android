@@ -1,6 +1,6 @@
-# Tripwire Android SDK
+# Foil Android SDK
 
-Tripwire is a native Android SDK for collecting encrypted device, app,
+Foil is a native Android SDK for collecting encrypted device, app,
 runtime, and behavioral signals that help your backend make risk decisions for
 signup, login, checkout, account recovery, and other sensitive flows.
 
@@ -12,8 +12,20 @@ and internal build artifacts are retained privately.
 
 | Artifact | Required | Description |
 | --- | --- | --- |
-| `com.tripwirejs:tripwire-android` | Yes | Core Tripwire Android SDK. |
-| `com.tripwirejs:tripwire-android-gms` | No | Optional Google ecosystem helpers for apps that already ship Google Play Services. |
+| `com.usefoil:foil-android` | Yes | Core Foil Android SDK. |
+| `com.usefoil:foil-android-gms` | No | Optional Google ecosystem helpers for apps that already ship Google Play Services. |
+
+## What's New in 1.2.2
+
+- Expanded native signal coverage for device, app, runtime, network, and
+  integrity posture.
+- Improved native behavioral collection for form, action, lifecycle, motion,
+  scroll, WebView, and touch evidence while keeping raw user-entered values out
+  of the payload.
+- Better parity with the iOS and web SDKs so native and hybrid sessions can be
+  interpreted consistently by Foil's server-side scoring pipeline.
+- Additional integration diagnostics and companion-app polish for local and
+  production validation.
 
 ## Requirements
 
@@ -21,7 +33,7 @@ and internal build artifacts are retained privately.
 - Kotlin 1.9+
 - Android Gradle Plugin 8.2+
 - Java 17 toolchain
-- A Tripwire publishable key, starting with `pk_live_` or `pk_test_`
+- A Foil publishable key, starting with `pk_live_` or `pk_test_`
 
 ## Installation
 
@@ -43,7 +55,7 @@ Add the SDK dependency:
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.tripwirejs:tripwire-android:1.2.0")
+    implementation("com.usefoil:foil-android:1.2.2")
 }
 ```
 
@@ -52,26 +64,26 @@ continuity helpers, add:
 
 ```kotlin
 dependencies {
-    implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
+    implementation("com.usefoil:foil-android-gms:1.2.2")
 }
 ```
 
 ## Quick Start
 
-Configure Tripwire once from your `Application`:
+Configure Foil once from your `Application`:
 
 ```kotlin
 import android.app.Application
-import com.tripwirejs.tripwire.TripwireClient
-import com.tripwirejs.tripwire.TripwireConfiguration
+import com.usefoil.foil.FoilClient
+import com.usefoil.foil.FoilConfiguration
 
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        TripwireClient.configure(
+        FoilClient.configure(
             context = this,
-            configuration = TripwireConfiguration(
+            configuration = FoilConfiguration(
                 publishableKey = "pk_live_your_publishable_key",
             ),
         )
@@ -84,50 +96,50 @@ and send it to your backend with the rest of the action payload:
 
 ```kotlin
 import androidx.lifecycle.lifecycleScope
-import com.tripwirejs.tripwire.TripwireClient
+import com.usefoil.foil.FoilClient
 import kotlinx.coroutines.launch
 
 fun submitSignup() {
     lifecycleScope.launch {
-        val handoff = TripwireClient.getSession()
+        val handoff = FoilClient.getSession()
 
         api.signup(
             SignupRequest(
                 email = email,
                 password = password,
-                tripwireSessionId = handoff.sessionId,
-                tripwireSealedToken = handoff.sealedToken,
+                foilSessionId = handoff.sessionId,
+                foilSealedToken = handoff.sealedToken,
             ),
         )
     }
 }
 ```
 
-Your server verifies the sealed token with Tripwire and decides whether to
+Your server verifies the sealed token with Foil and decides whether to
 allow, challenge, review, or deny the action. Do not make trust decisions in
 the app itself.
 
 ## Configuration
 
 ```kotlin
-val config = TripwireConfiguration(
+val config = FoilConfiguration(
     publishableKey = "pk_live_your_publishable_key",
     enableBehavioralSignals = true,
     enableHiddenWebView = true,
     enableCloudIdentifier = false,
     enableAutoAttachTouches = false,
     lockAgainstExternalDebuggers = false,
-    apiEndpoint = "https://api.tripwirejs.com",
+    apiEndpoint = "https://api.usefoil.com",
 )
 
-TripwireClient.configure(context, config)
+FoilClient.configure(context, config)
 ```
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `publishableKey` | Required | Your client-side Tripwire key. Must start with `pk_live_` or `pk_test_`. Secret keys are rejected. |
+| `publishableKey` | Required | Your client-side Foil key. Must start with `pk_live_` or `pk_test_`. Secret keys are rejected. |
 | `enableBehavioralSignals` | `true` | Captures native lifecycle, navigation, viewport, scroll, form, clipboard, selection, motion, and touch behavior. |
-| `enableHiddenWebView` | `true` | Enables native-to-web handoff for Tripwire-protected `WebView` content. |
+| `enableHiddenWebView` | `true` | Enables native-to-web handoff for Foil-protected `WebView` content. |
 | `enableCloudIdentifier` | `false` | Enables an optional cloud continuity hint when the optional GMS helper is present and available. |
 | `enableAutoAttachTouches` | `false` | Automatically attaches touch dynamics to resumed activities. Leave off if you attach touches manually. |
 | `lockAgainstExternalDebuggers` | `false` | Optional production hardening that can block debugger/profiler attachment while the app is running. Test carefully before enabling. |
@@ -147,26 +159,26 @@ data class SessionHandoff(
 )
 ```
 
-- `sessionId` identifies the Tripwire session.
+- `sessionId` identifies the Foil session.
 - `sealedToken` is the server-verifiable handoff token.
 - The SDK does not expose scores, verdicts, visitor IDs, or risk decisions to
   the device.
 
 Call `getSession()` immediately before the sensitive action. Avoid calling it
-only at app launch, because Tripwire is most useful when it includes the
+only at app launch, because Foil is most useful when it includes the
 behavior leading up to the action.
 
 ## Backend Verification
 
 Send `sessionId` and `sealedToken` to your own backend. Your backend should
-verify the token with Tripwire, then apply your product policy.
+verify the token with Foil, then apply your product policy.
 
 Example request shape:
 
 ```json
 {
   "email": "user@example.com",
-  "tripwire": {
+  "foil": {
     "sessionId": "sess_...",
     "sealedToken": "..."
   }
@@ -175,15 +187,15 @@ Example request shape:
 
 Recommended policy:
 
-- Keep Tripwire secret keys on your server only.
+- Keep Foil secret keys on your server only.
 - Treat the mobile SDK as an evidence collector, not a policy engine.
 - Make allow/challenge/deny decisions server-side.
 - Decide explicitly whether each flow should fail open or fail closed if
-  Tripwire is unavailable.
+  Foil is unavailable.
 
 ## Behavioral Capture
 
-When `enableBehavioralSignals` is enabled, Tripwire starts native behavioral
+When `enableBehavioralSignals` is enabled, Foil starts native behavioral
 capture automatically. The SDK avoids collecting raw form values, raw hints,
 or raw view identifiers.
 
@@ -191,11 +203,11 @@ Touch dynamics can be attached manually for screens where gesture behavior is
 important:
 
 ```kotlin
-import com.tripwirejs.tripwire.TripwireClient
+import com.usefoil.foil.FoilClient
 
 override fun onResume() {
     super.onResume()
-    TripwireClient.observeTouches(rootView, contextId = "checkout")
+    FoilClient.observeTouches(rootView, contextId = "checkout")
 }
 ```
 
@@ -204,15 +216,15 @@ existing gestures and scroll handlers continue to work.
 
 ## WebView Correlation
 
-If your app embeds Tripwire-protected web content, attach your `WebView` so
+If your app embeds Foil-protected web content, attach your `WebView` so
 the browser SDK can reuse the native session:
 
 ```kotlin
 import android.webkit.WebView
-import com.tripwirejs.tripwire.TripwireClient
+import com.usefoil.foil.FoilClient
 
 val webView = WebView(context)
-TripwireClient.attach(webView)
+FoilClient.attach(webView)
 webView.loadUrl("https://app.example.com/signup")
 ```
 
@@ -221,7 +233,7 @@ the same user flow.
 
 ## Optional GMS Helpers
 
-The `tripwire-android-gms` artifact is optional. Add it only if your app
+The `foil-android-gms` artifact is optional. Add it only if your app
 already depends on Google Play Services and wants the additional Google
 ecosystem continuity and attestation support.
 
@@ -230,9 +242,9 @@ Apps without the helper still use the core SDK normally.
 ## Permissions and Privacy
 
 The SDK does not require dangerous Android permissions. Your app needs
-`android.permission.INTERNET` to talk to the Tripwire API.
+`android.permission.INTERNET` to talk to the Foil API.
 
-Tripwire collects encrypted signals that help distinguish trustworthy,
+Foil collects encrypted signals that help distinguish trustworthy,
 automated, tampered, replayed, or anomalous sessions. Signal categories
 include:
 
@@ -245,37 +257,37 @@ include:
 - Android platform attestation support facts
 
 The SDK is designed to avoid collecting raw form input values. Sensitive
-values should stay in your app and backend; Tripwire receives encrypted
+values should stay in your app and backend; Foil receives encrypted
 session evidence for server-side verification.
 
 ## API Reference
 
 | API | Description |
 | --- | --- |
-| `TripwireClient.configure(context, configuration)` | Validates configuration and starts collection. |
-| `TripwireClient.getSession()` | Flushes a bounded batch and returns a server-verifiable handoff. |
-| `TripwireClient.waitForFingerprint()` | Waits for the durable fingerprint to be ready. Optional for most integrations. |
-| `TripwireClient.pauseCollection()` | Temporarily pauses active collection without destroying SDK state. |
-| `TripwireClient.resumeCollection()` | Resumes active collection after a pause. |
-| `TripwireClient.observeTouches(view, contextId)` | Manually attaches touch dynamics to a view. |
-| `TripwireClient.attach(webView)` | Connects a `WebView` to the native Tripwire session. |
-| `TripwireClient.resetLocalState()` | Clears local SDK session state for development and test flows. |
-| `TripwireClient.destroy()` | Stops collection and releases resources. Mostly useful in tests. |
+| `FoilClient.configure(context, configuration)` | Validates configuration and starts collection. |
+| `FoilClient.getSession()` | Flushes a bounded batch and returns a server-verifiable handoff. |
+| `FoilClient.waitForFingerprint()` | Waits for the durable fingerprint to be ready. Optional for most integrations. |
+| `FoilClient.pauseCollection()` | Temporarily pauses active collection without destroying SDK state. |
+| `FoilClient.resumeCollection()` | Resumes active collection after a pause. |
+| `FoilClient.observeTouches(view, contextId)` | Manually attaches touch dynamics to a view. |
+| `FoilClient.attach(webView)` | Connects a `WebView` to the native Foil session. |
+| `FoilClient.resetLocalState()` | Clears local SDK session state for development and test flows. |
+| `FoilClient.destroy()` | Stops collection and releases resources. Mostly useful in tests. |
 
 ## Error Handling
 
-Tripwire throws `TripwireError` subclasses for SDK-defined failures. The
+Foil throws `FoilError` subclasses for SDK-defined failures. The
 errors carry stable codes and retryability semantics.
 
 Recommended fallback:
 
 ```kotlin
-suspend fun tripwireHandoffOrNull(): SessionHandoff? {
+suspend fun foilHandoffOrNull(): SessionHandoff? {
     return try {
-        TripwireClient.getSession()
-    } catch (error: TripwireError) {
+        FoilClient.getSession()
+    } catch (error: FoilError) {
         if (error.retryable) {
-            runCatching { TripwireClient.getSession() }.getOrNull()
+            runCatching { FoilClient.getSession() }.getOrNull()
         } else {
             null
         }
@@ -283,7 +295,7 @@ suspend fun tripwireHandoffOrNull(): SessionHandoff? {
 }
 ```
 
-If Tripwire fails, choose a product-appropriate policy. Many apps log the
+If Foil fails, choose a product-appropriate policy. Many apps log the
 error and continue without a handoff; high-risk flows may choose to challenge
 or fail closed.
 
@@ -294,15 +306,15 @@ not a source mirror.
 
 The public Maven artifacts include protected binary AARs plus placeholder
 sources and javadocs jars for Maven Central compliance. Private mappings,
-native symbols, and debug artifacts are retained by Tripwire.
+native symbols, and debug artifacts are retained by Foil.
 
 ## Versioning
 
-Tripwire follows semantic versioning for public mobile SDK packages.
+Foil follows semantic versioning for public mobile SDK packages.
 
 ```kotlin
-implementation("com.tripwirejs:tripwire-android:1.2.0")
-implementation("com.tripwirejs:tripwire-android-gms:1.2.0")
+implementation("com.usefoil:foil-android:1.2.2")
+implementation("com.usefoil:foil-android-gms:1.2.2")
 ```
 
 Pin exact versions in production builds and upgrade intentionally.
@@ -310,4 +322,4 @@ Pin exact versions in production builds and upgrade intentionally.
 ## Support
 
 For SDK access, integration help, or production verification setup, contact
-Tripwire support.
+Foil support.
